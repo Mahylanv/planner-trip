@@ -1,4 +1,4 @@
-const CACHE_VERSION = "amsud-planner-v3";
+const CACHE_VERSION = "amsud-planner-v4";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const PRECACHE_URLS = [

@@ -68,7 +68,8 @@ type TimelineEntry = {
   theme: CountryTheme;
 };
 
-const storageKey = "amsud-itinerary-v1";
+const storageKey = "amsud-itinerary-v2";
+const legacyStorageKeys = ["amsud-itinerary-v1"];
 
 const emptyForm: NodeFormState = {
   title: "",
@@ -1281,15 +1282,19 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
+    const saved = window.localStorage.getItem(storageKey) ?? legacyStorageKeys.map((key) => window.localStorage.getItem(key)).find(Boolean);
 
     if (saved) {
       try {
+        const migratedItems = migrateItinerary(JSON.parse(saved) as TravelNode[]);
         // localStorage is the external source of truth after the first visit.
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(migrateItinerary(JSON.parse(saved) as TravelNode[]));
+        setItems(migratedItems);
+        window.localStorage.setItem(storageKey, JSON.stringify(migratedItems));
+        legacyStorageKeys.forEach((key) => window.localStorage.removeItem(key));
       } catch {
         window.localStorage.removeItem(storageKey);
+        legacyStorageKeys.forEach((key) => window.localStorage.removeItem(key));
       }
     }
 
