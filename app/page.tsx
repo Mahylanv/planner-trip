@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   Clock3,
+  Download,
   Edit3,
   ExternalLink,
   Footprints,
@@ -22,11 +23,12 @@ import {
   Search,
   Trash2,
   Train,
+  Upload,
   WalletCards,
   Waves,
   X,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { RealMap, RealMapMarker } from "./components/RealMap";
 import { initialItinerary, TravelLink, TravelNode, TravelStatus, TravelTransport } from "./data/itinerary";
 
@@ -1280,6 +1282,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("detail");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey) ?? legacyStorageKeys.map((key) => window.localStorage.getItem(key)).find(Boolean);
@@ -1338,6 +1341,52 @@ export default function Home() {
     window.localStorage.removeItem(storageKey);
   }
 
+  function exportData() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      storageKey,
+      items,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = `amsud-planner-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importData(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const importedItems = Array.isArray(parsed) ? parsed : parsed.items;
+
+        if (!Array.isArray(importedItems)) {
+          throw new Error("Invalid itinerary file");
+        }
+
+        setItems(migrateItinerary(importedItems as TravelNode[]));
+        setQuery("");
+      } catch {
+        window.alert("Le fichier importe n'est pas un export Amsud Planner valide.");
+      } finally {
+        event.target.value = "";
+      }
+    };
+
+    reader.readAsText(file);
+  }
+
   return (
     <main className="app-shell">
       <section className="hero-section">
@@ -1373,6 +1422,7 @@ export default function Home() {
         </div>
 
         <div className="toolbar-actions">
+          <input ref={importInputRef} className="sr-only" type="file" accept="application/json" onChange={importData} />
           <div className="view-switch" role="tablist" aria-label="Changer de vue">
             {[
               { value: "detail", label: "Détail" },
@@ -1395,6 +1445,14 @@ export default function Home() {
           <button className="button secondary" type="button" onClick={resetData}>
             <RotateCcw aria-hidden="true" />
             Réinitialiser
+          </button>
+          <button className="button secondary" type="button" onClick={exportData}>
+            <Download aria-hidden="true" />
+            Exporter
+          </button>
+          <button className="button secondary" type="button" onClick={() => importInputRef.current?.click()}>
+            <Upload aria-hidden="true" />
+            Importer
           </button>
           <button className="button primary" type="button" onClick={() => setEditor({ mode: "create", parentId: null })}>
             <Plus aria-hidden="true" />
