@@ -387,6 +387,33 @@ function deleteNode(nodes: TravelNode[], nodeId: string): TravelNode[] {
     .map((item) => ({ ...item, children: deleteNode(item.children, nodeId) }));
 }
 
+function hasNode(nodes: TravelNode[], nodeId: string): boolean {
+  return nodes.some((node) => node.id === nodeId || hasNode(node.children, nodeId));
+}
+
+function appendChildToNode(nodes: TravelNode[], parentId: string, child: TravelNode): TravelNode[] {
+  return nodes.map((node) => {
+    if (node.id === parentId) {
+      return { ...node, children: [...node.children, child] };
+    }
+
+    return { ...node, children: appendChildToNode(node.children, parentId, child) };
+  });
+}
+
+function migrateItinerary(nodes: TravelNode[]): TravelNode[] {
+  if (hasNode(nodes, "puerto-maldonado")) {
+    return nodes;
+  }
+
+  return appendChildToNode(nodes, "perou", {
+    id: "puerto-maldonado",
+    title: "Puerto Maldonado",
+    status: "planned",
+    children: [],
+  });
+}
+
 function sumBudget(node: TravelNode): number {
   const ownAmount = Number(node.budget?.match(/\d+/)?.[0] ?? 0);
   return node.children.reduce((sum, child) => sum + sumBudget(child), ownAmount);
@@ -1252,7 +1279,7 @@ export default function Home() {
       try {
         // localStorage is the external source of truth after the first visit.
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(JSON.parse(saved) as TravelNode[]);
+        setItems(migrateItinerary(JSON.parse(saved) as TravelNode[]));
       } catch {
         window.localStorage.removeItem(storageKey);
       }
