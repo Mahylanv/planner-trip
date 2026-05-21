@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Amsud Planner">
+  <rect width="512" height="512" fill="#087d8f"/>
+  <circle cx="256" cy="256" r="188" fill="#fff5dc"/>
+  <path d="M144 312c42-60 69-118 112-118s70 58 112 118" fill="none" stroke="#087d8f" stroke-width="30" stroke-linecap="round"/>
+  <path d="M136 346c45 28 77 34 120 0s75-28 120 0" fill="none" stroke="#13a8a8" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="256" cy="156" r="38" fill="#f4b942"/>
+</svg>
