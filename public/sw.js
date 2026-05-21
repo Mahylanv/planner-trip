@@ -1,7 +1,16 @@
-const CACHE_VERSION = "amsud-planner-v2";
+const CACHE_VERSION = "amsud-planner-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
-const PRECACHE_URLS = ["/", "/offline", "/manifest.webmanifest", "/icons/icon.svg", "/icons/maskable-icon.svg"];
+const PRECACHE_URLS = [
+  "/",
+  "/offline",
+  "/manifest.webmanifest",
+  "/icons/icon.svg",
+  "/icons/maskable-icon.svg",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/apple-touch-icon.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

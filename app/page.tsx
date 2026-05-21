@@ -391,27 +391,35 @@ function hasNode(nodes: TravelNode[], nodeId: string): boolean {
   return nodes.some((node) => node.id === nodeId || hasNode(node.children, nodeId));
 }
 
-function appendChildToNode(nodes: TravelNode[], parentId: string, child: TravelNode): TravelNode[] {
-  return nodes.map((node) => {
-    if (node.id === parentId) {
-      return { ...node, children: [...node.children, child] };
+function mergeMissingSeedNodes(nodes: TravelNode[], seedNodes: TravelNode[]): TravelNode[] {
+  const mergedNodes = nodes.map((node) => {
+    const seedNode = seedNodes.find((item) => item.id === node.id);
+
+    if (!seedNode) {
+      return node;
     }
 
-    return { ...node, children: appendChildToNode(node.children, parentId, child) };
+    return {
+      ...node,
+      children: mergeMissingSeedNodes(node.children, seedNode.children),
+    };
   });
+
+  seedNodes.forEach((seedNode) => {
+    if (!hasNode(mergedNodes, seedNode.id)) {
+      mergedNodes.push(seedNode);
+    }
+  });
+
+  return mergedNodes;
 }
 
 function migrateItinerary(nodes: TravelNode[]): TravelNode[] {
-  if (hasNode(nodes, "puerto-maldonado")) {
+  if (!hasNode(initialItinerary, "puerto-maldonado")) {
     return nodes;
   }
 
-  return appendChildToNode(nodes, "perou", {
-    id: "puerto-maldonado",
-    title: "Puerto Maldonado",
-    status: "planned",
-    children: [],
-  });
+  return mergeMissingSeedNodes(nodes, initialItinerary);
 }
 
 function sumBudget(node: TravelNode): number {

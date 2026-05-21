@@ -14,6 +14,24 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["travel", "productivity"],
     icons: [
       {
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
         src: "/icons/icon.svg",
         sizes: "any",
         type: "image/svg+xml",
@@ -32,7 +50,7 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Itineraire",
         description: "Voir le plan complet du voyage",
         url: "/",
-        icons: [{ src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml" }],
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
       },
     ],
   };
