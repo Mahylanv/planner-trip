@@ -8,7 +8,7 @@ type TripPayload = {
   items: unknown;
 };
 
-const isBlobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN || (process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID));
+const isBlobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 
 function normalizeKey(key: string) {
   const decoded = decodeURIComponent(key).trim();
