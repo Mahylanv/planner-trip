@@ -55,7 +55,6 @@ export const initialItinerary: TravelNode[] = [
             ],
             children: [],
           },
-          { id: "lencois-maranhenses", title: "Lençóis Maranhenses", status: "planned", children: [] },
         ],
       },
     ],
@@ -267,7 +266,6 @@ export const initialItinerary: TravelNode[] = [
       { id: "huaraz", title: "Huaraz", duration: "7 à 13j", transport: "flight", status: "planned", children: [] },
       { id: "lima", title: "Lima", duration: "5 à 7j", transport: "flight", status: "planned", children: [] },
       { id: "pisco", title: "Pisco", transport: "bus", status: "option", children: [] },
-      { id: "puerto-maldonado", title: "Puerto Maldonado", status: "planned", children: [] },
       {
         id: "ayacucho",
         title: "Ayacucho",

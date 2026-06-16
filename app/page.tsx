@@ -394,39 +394,8 @@ function deleteNode(nodes: TravelNode[], nodeId: string): TravelNode[] {
     .map((item) => ({ ...item, children: deleteNode(item.children, nodeId) }));
 }
 
-function hasNode(nodes: TravelNode[], nodeId: string): boolean {
-  return nodes.some((node) => node.id === nodeId || hasNode(node.children, nodeId));
-}
-
-function mergeMissingSeedNodes(nodes: TravelNode[], seedNodes: TravelNode[]): TravelNode[] {
-  const mergedNodes = nodes.map((node) => {
-    const seedNode = seedNodes.find((item) => item.id === node.id);
-
-    if (!seedNode) {
-      return node;
-    }
-
-    return {
-      ...node,
-      children: mergeMissingSeedNodes(node.children, seedNode.children),
-    };
-  });
-
-  seedNodes.forEach((seedNode) => {
-    if (!hasNode(mergedNodes, seedNode.id)) {
-      mergedNodes.push(seedNode);
-    }
-  });
-
-  return mergedNodes;
-}
-
 function migrateItinerary(nodes: TravelNode[]): TravelNode[] {
-  if (!hasNode(initialItinerary, "puerto-maldonado")) {
-    return nodes;
-  }
-
-  return mergeMissingSeedNodes(nodes, initialItinerary);
+  return nodes;
 }
 
 function sumBudget(node: TravelNode): number {
