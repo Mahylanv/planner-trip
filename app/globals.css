@@ -10,6 +10,8 @@
   --leaf: #2f8f5b;
   --line: rgba(22, 50, 61, 0.14);
   --shadow: 0 18px 50px rgba(24, 66, 76, 0.14);
+  --status-accent: var(--lagoon);
+  --status-accent-soft: rgba(19, 168, 168, 0.13);
 }
 
 * {
@@ -469,7 +471,7 @@ h1 {
   margin-top: 10px;
   margin-left: clamp(12px, calc(var(--level) * 4px + 20px), 34px);
   padding-left: 18px;
-  border-left: 2px solid color-mix(in srgb, var(--country-accent) 26%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--status-accent) 26%, transparent);
 }
 
 .travel-card {
@@ -483,7 +485,7 @@ h1 {
   border-left-width: 5px;
   border-radius: 8px;
   background:
-    linear-gradient(90deg, var(--country-accent-soft), rgba(255, 255, 255, 0) 36%),
+    linear-gradient(90deg, var(--status-accent-soft), rgba(255, 255, 255, 0) 36%),
     #ffffff;
   transition:
     transform 180ms ease,
@@ -492,8 +494,8 @@ h1 {
 }
 
 .travel-card:hover {
-  border-color: rgba(8, 125, 143, 0.34);
-  box-shadow: 0 12px 26px rgba(24, 66, 76, 0.1);
+  border-color: color-mix(in srgb, var(--status-accent) 34%, rgba(22, 50, 61, 0.14));
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--status-accent) 13%, transparent);
   transform: translateY(-1px);
 }
 
@@ -502,14 +504,16 @@ h1 {
 }
 
 .travel-card.is-drag-over {
-  border-color: var(--country-accent);
+  border-color: var(--status-accent);
   box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--country-accent) 32%, transparent),
-    0 14px 30px color-mix(in srgb, var(--country-accent) 14%, transparent);
+    inset 0 0 0 2px color-mix(in srgb, var(--status-accent) 32%, transparent),
+    0 14px 30px color-mix(in srgb, var(--status-accent) 14%, transparent);
 }
 
 .status-planned {
-  border-left-color: var(--lagoon);
+  --status-accent: var(--lagoon);
+  --status-accent-soft: rgba(19, 168, 168, 0.13);
+  border-left-color: var(--status-accent);
 }
 
 .dot.status-planned {
@@ -517,7 +521,9 @@ h1 {
 }
 
 .status-booked {
-  border-left-color: var(--sun);
+  --status-accent: var(--sun);
+  --status-accent-soft: rgba(244, 185, 66, 0.18);
+  border-left-color: var(--status-accent);
 }
 
 .dot.status-booked {
@@ -525,7 +531,9 @@ h1 {
 }
 
 .status-done {
-  border-left-color: var(--leaf);
+  --status-accent: var(--leaf);
+  --status-accent-soft: rgba(47, 143, 91, 0.14);
+  border-left-color: var(--status-accent);
 }
 
 .dot.status-done {
@@ -533,7 +541,9 @@ h1 {
 }
 
 .status-option {
-  border-left-color: var(--coral);
+  --status-accent: var(--coral);
+  --status-accent-soft: rgba(239, 111, 94, 0.14);
+  border-left-color: var(--status-accent);
 }
 
 .dot.status-option {
@@ -574,16 +584,16 @@ h1 {
   min-height: 176px;
   align-items: stretch;
   padding: 14px;
-  border-left-color: var(--country-accent);
+  border-left-color: var(--status-accent);
   background:
     linear-gradient(115deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88)),
-    linear-gradient(90deg, var(--country-accent-soft), rgba(255, 255, 255, 0) 48%);
-  box-shadow: 0 18px 42px color-mix(in srgb, var(--country-accent) 15%, transparent);
+    linear-gradient(90deg, var(--status-accent-soft), rgba(255, 255, 255, 0) 48%);
+  box-shadow: 0 18px 42px color-mix(in srgb, var(--status-accent) 15%, transparent);
 }
 
 .country-card:hover {
-  border-color: color-mix(in srgb, var(--country-accent) 42%, rgba(22, 50, 61, 0.14));
-  box-shadow: 0 20px 48px color-mix(in srgb, var(--country-accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--status-accent) 42%, rgba(22, 50, 61, 0.14));
+  box-shadow: 0 20px 48px color-mix(in srgb, var(--status-accent) 20%, transparent);
 }
 
 .country-cover {
@@ -602,7 +612,7 @@ h1 {
   position: absolute;
   inset: 0;
   content: "";
-  background: linear-gradient(135deg, color-mix(in srgb, var(--country-accent) 36%, transparent), transparent 54%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--status-accent) 28%, transparent), transparent 54%);
 }
 
 .country-cover span {
@@ -634,7 +644,7 @@ h1 {
   min-width: 42px;
   border-radius: 8px;
   padding: 6px 8px;
-  background: var(--country-accent);
+  background: var(--status-accent);
   color: white;
   font-size: 1.05rem;
   font-weight: 950;
@@ -642,7 +652,7 @@ h1 {
 }
 
 .country-kicker p {
-  color: color-mix(in srgb, var(--country-accent) 74%, var(--ink));
+  color: color-mix(in srgb, var(--status-accent) 74%, var(--ink));
   font-size: 0.88rem;
   font-weight: 850;
   line-height: 1.35;
@@ -654,8 +664,8 @@ h1 {
 }
 
 .country-card .status-pill {
-  background: color-mix(in srgb, var(--country-accent) 13%, white);
-  color: color-mix(in srgb, var(--country-accent) 72%, var(--ink));
+  background: color-mix(in srgb, var(--status-accent) 13%, white);
+  color: color-mix(in srgb, var(--status-accent) 72%, var(--ink));
 }
 
 .expand-button,
@@ -692,8 +702,8 @@ h1 {
 .icon-button:hover,
 .drag-handle:hover,
 .expand-button:not(:disabled):hover {
-  background: var(--country-accent-soft);
-  color: var(--country-accent);
+  background: var(--status-accent-soft);
+  color: var(--status-accent);
   transform: translateY(-1px);
 }
 
@@ -728,8 +738,8 @@ h1 {
   height: 30px;
   place-items: center;
   border-radius: 8px;
-  background: var(--country-accent-soft);
-  color: var(--country-accent);
+  background: var(--status-accent-soft);
+  color: var(--status-accent);
 }
 
 .node-emoji {
@@ -737,7 +747,7 @@ h1 {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--country-accent) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-accent) 20%, transparent);
   border-radius: 8px;
   background: #ffffff;
   font-size: 1.2rem;
@@ -751,8 +761,8 @@ h1 {
   min-height: 26px;
   padding: 5px 9px;
   border-radius: 999px;
-  background: rgba(8, 125, 143, 0.09);
-  color: #0b6470;
+  background: color-mix(in srgb, var(--status-accent) 12%, white);
+  color: color-mix(in srgb, var(--status-accent) 78%, var(--ink));
   font-size: 0.78rem;
   font-weight: 850;
 }
@@ -768,7 +778,7 @@ h1 {
   min-height: 28px;
   padding: 4px 8px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--country-accent) 7%, white);
+  background: color-mix(in srgb, var(--status-accent) 7%, white);
   color: var(--muted);
   font-size: 0.87rem;
   font-weight: 750;
@@ -780,7 +790,7 @@ h1 {
 }
 
 .meta-row .transport-chip {
-  background: var(--country-accent);
+  background: var(--status-accent);
   color: white;
 }
 
@@ -807,8 +817,8 @@ h1 {
   min-height: 34px;
   padding: 6px 10px;
   border-radius: 8px;
-  background: var(--country-accent-soft);
-  color: color-mix(in srgb, var(--country-accent) 76%, var(--ink));
+  background: var(--status-accent-soft);
+  color: color-mix(in srgb, var(--status-accent) 76%, var(--ink));
   font-size: 0.88rem;
   font-weight: 800;
   text-decoration: none;
@@ -1048,8 +1058,8 @@ h1 {
 }
 
 .map-stop-list button:hover {
-  border-color: var(--country-accent);
-  background: var(--country-accent-soft);
+  border-color: var(--status-accent);
+  background: var(--status-accent-soft);
 }
 
 .map-stop-list button.status-option {
@@ -1104,9 +1114,9 @@ h1 {
   place-items: center;
   border: 3px solid #fffdf7;
   border-radius: 999px;
-  background: var(--country-accent);
+  background: var(--status-accent);
   color: white;
-  box-shadow: 0 10px 22px color-mix(in srgb, var(--country-accent) 22%, transparent);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--status-accent) 22%, transparent);
   font-weight: 950;
 }
 
@@ -1116,12 +1126,12 @@ h1 {
 
 .frise-card {
   min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--country-accent) 18%, rgba(22, 50, 61, 0.14));
-  border-left: 5px solid var(--country-accent);
+  border: 1px solid color-mix(in srgb, var(--status-accent) 18%, rgba(22, 50, 61, 0.14));
+  border-left: 5px solid var(--status-accent);
   border-radius: 8px;
   padding: 13px;
   background:
-    linear-gradient(90deg, var(--country-accent-soft), rgba(255, 255, 255, 0) 32%),
+    linear-gradient(90deg, var(--status-accent-soft), rgba(255, 255, 255, 0) 32%),
     #ffffff;
 }
 
@@ -1147,7 +1157,7 @@ h1 {
 
 .frise-step.depth-0 .frise-card {
   background:
-    linear-gradient(110deg, var(--country-accent-soft), rgba(255, 255, 255, 0) 46%),
+    linear-gradient(110deg, var(--status-accent-soft), rgba(255, 255, 255, 0) 46%),
     #fffdf7;
 }
 
@@ -1227,11 +1237,11 @@ h1 {
   display: grid;
   gap: 10px;
   min-height: 176px;
-  border: 1px solid color-mix(in srgb, var(--country-accent) 18%, rgba(22, 50, 61, 0.14));
-  border-left: 5px solid var(--country-accent);
+  border: 1px solid color-mix(in srgb, var(--status-accent) 18%, rgba(22, 50, 61, 0.14));
+  border-left: 5px solid var(--status-accent);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, var(--country-accent-soft), rgba(255, 255, 255, 0) 46%),
+    linear-gradient(135deg, var(--status-accent-soft), rgba(255, 255, 255, 0) 46%),
     #ffffff;
   color: var(--ink);
   padding: 14px;
@@ -1243,8 +1253,8 @@ h1 {
 }
 
 .grid-block-card:hover {
-  border-color: var(--country-accent);
-  box-shadow: 0 16px 34px color-mix(in srgb, var(--country-accent) 16%, transparent);
+  border-color: var(--status-accent);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--status-accent) 16%, transparent);
   transform: translateY(-2px);
 }
 
@@ -1299,7 +1309,7 @@ h1 {
   width: min(460px, 100%);
   height: 100dvh;
   overflow: auto;
-  border-left: 1px solid color-mix(in srgb, var(--country-accent) 28%, rgba(22, 50, 61, 0.14));
+  border-left: 1px solid color-mix(in srgb, var(--status-accent) 28%, rgba(22, 50, 61, 0.14));
   background: #fffdf7;
   box-shadow: -18px 0 50px rgba(24, 66, 76, 0.22);
 }
@@ -1381,8 +1391,8 @@ h1 {
 }
 
 .grid-child-tree li.is-drag-over > button {
-  border-color: var(--country-accent);
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--country-accent) 24%, transparent);
+  border-color: var(--status-accent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--status-accent) 24%, transparent);
 }
 
 .sidebar-drag-handle {
@@ -1403,9 +1413,9 @@ h1 {
 }
 
 .sidebar-drag-handle:hover {
-  border-color: var(--country-accent);
-  background: var(--country-accent-soft);
-  color: var(--country-accent);
+  border-color: var(--status-accent);
+  background: var(--status-accent-soft);
+  color: var(--status-accent);
 }
 
 .grid-child-list button strong {
@@ -1420,8 +1430,8 @@ h1 {
 }
 
 .grid-child-list button:hover {
-  border-color: var(--country-accent);
-  background: var(--country-accent-soft);
+  border-color: var(--status-accent);
+  background: var(--status-accent-soft);
 }
 
 .grid-child-list button.status-option {

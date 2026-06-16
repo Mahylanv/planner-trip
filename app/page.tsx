@@ -661,7 +661,7 @@ function TravelCard({
   onDelete: (nodeId: string) => void;
   onReorder: (sourceId: string, targetId: string) => void;
 }) {
-  const [open, setOpen] = useState(() => node.status !== "done");
+  const [open, setOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const hasChildren = node.children.length > 0;
   const isCountry = level === 0;
@@ -676,7 +676,7 @@ function TravelCard({
   } as React.CSSProperties;
 
   return (
-    <li className={`travel-item ${isCountry ? "country-item" : ""}`} style={style}>
+    <li className={`travel-item status-${node.status} ${isCountry ? "country-item" : ""}`} style={style}>
       <article
         className={`travel-card status-${node.status} ${isCountry ? "country-card" : ""} ${draggedId === node.id ? "is-dragging" : ""} ${isDragOver ? "is-drag-over" : ""}`}
         onDragEnter={() => {
