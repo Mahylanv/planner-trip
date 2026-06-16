@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
+import { get, put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
 
 export const runtime = "nodejs";
 
@@ -8,19 +8,7 @@ type TripPayload = {
   items: unknown;
 };
 
-const connectionString = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
-const globalForPg = globalThis as typeof globalThis & { tripPlannerPool?: Pool };
-const pool =
-  connectionString &&
-  (globalForPg.tripPlannerPool ??
-    new Pool({
-      connectionString,
-      ssl: connectionString.includes("localhost") ? false : { rejectUnauthorized: false },
-    }));
-
-if (pool && !globalForPg.tripPlannerPool) {
-  globalForPg.tripPlannerPool = pool;
-}
+const isBlobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN || (process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID));
 
 function normalizeKey(key: string) {
   const decoded = decodeURIComponent(key).trim();
@@ -32,31 +20,21 @@ function normalizeKey(key: string) {
   return createHash("sha256").update(decoded).digest("hex");
 }
 
-async function ensureTable() {
-  if (!pool) {
-    return;
-  }
-
-  await pool.query(`
-    create table if not exists trip_configs (
-      sync_key text primary key,
-      data jsonb not null,
-      updated_at timestamptz not null default now()
-    )
-  `);
+function pathnameForKey(syncKey: string) {
+  return `trip-configs/${syncKey}.json`;
 }
 
 function unavailable() {
   return NextResponse.json(
     {
-      error: "Cloud sync is not configured. Add POSTGRES_URL or DATABASE_URL on Vercel.",
+      error: "Cloud sync is not configured. Add a Vercel Blob store to this project.",
     },
     { status: 503 },
   );
 }
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ key: string }> }) {
-  if (!pool) {
+  if (!isBlobConfigured) {
     return unavailable();
   }
 
@@ -67,22 +45,26 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ke
     return NextResponse.json({ error: "Invalid sync key." }, { status: 400 });
   }
 
-  await ensureTable();
+  const blob = await get(pathnameForKey(syncKey), { access: "private", useCache: false });
 
-  const result = await pool.query("select data, updated_at from trip_configs where sync_key = $1", [syncKey]);
-
-  if (result.rowCount === 0) {
+  if (!blob) {
     return NextResponse.json({ error: "No cloud itinerary for this key." }, { status: 404 });
   }
 
+  const data = (await new Response(blob.stream).json()) as { items?: unknown; updatedAt?: string };
+
+  if (!Array.isArray(data.items)) {
+    return NextResponse.json({ error: "Invalid cloud itinerary payload." }, { status: 500 });
+  }
+
   return NextResponse.json({
-    items: result.rows[0].data,
-    updatedAt: result.rows[0].updated_at,
+    items: data.items,
+    updatedAt: data.updatedAt ?? blob.blob.uploadedAt,
   });
 }
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ key: string }> }) {
-  if (!pool) {
+  if (!isBlobConfigured) {
     return unavailable();
   }
 
@@ -99,21 +81,18 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ key
     return NextResponse.json({ error: "Invalid itinerary payload." }, { status: 400 });
   }
 
-  await ensureTable();
+  const updatedAt = new Date().toISOString();
 
-  const result = await pool.query(
-    `
-      insert into trip_configs (sync_key, data, updated_at)
-      values ($1, $2::jsonb, now())
-      on conflict (sync_key)
-      do update set data = excluded.data, updated_at = now()
-      returning updated_at
-    `,
-    [syncKey, JSON.stringify(payload.items)],
-  );
+  await put(pathnameForKey(syncKey), JSON.stringify({ items: payload.items, updatedAt }), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    cacheControlMaxAge: 60,
+    contentType: "application/json",
+  });
 
   return NextResponse.json({
     ok: true,
-    updatedAt: result.rows[0].updated_at,
+    updatedAt,
   });
 }
