@@ -8,6 +8,8 @@ import {
   ChevronDown,
   ChevronRight,
   Clock3,
+  Cloud,
+  CloudOff,
   Download,
   Edit3,
   ExternalLink,
@@ -52,6 +54,7 @@ type NodeFormState = {
 };
 
 type ViewMode = "detail" | "map" | "frise" | "grid";
+type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error";
 
 type CountryTheme = {
   code: string;
@@ -71,6 +74,7 @@ type TimelineEntry = {
 };
 
 const storageKey = "amsud-itinerary-v2";
+const cloudKeyStorageKey = "amsud-cloud-sync-key";
 const legacyStorageKeys = ["amsud-itinerary-v1"];
 
 const emptyForm: NodeFormState = {
@@ -1282,10 +1286,16 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("detail");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [cloudKey, setCloudKey] = useState("");
+  const [cloudReady, setCloudReady] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [syncMessage, setSyncMessage] = useState("Entre une clé secrète pour synchroniser entre tes appareils.");
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingAutoConnectKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey) ?? legacyStorageKeys.map((key) => window.localStorage.getItem(key)).find(Boolean);
+    const savedCloudKey = window.localStorage.getItem(cloudKeyStorageKey)?.trim();
 
     if (saved) {
       try {
@@ -1299,6 +1309,12 @@ export default function Home() {
         window.localStorage.removeItem(storageKey);
         legacyStorageKeys.forEach((key) => window.localStorage.removeItem(key));
       }
+    }
+
+    if (savedCloudKey) {
+      pendingAutoConnectKeyRef.current = savedCloudKey;
+      setCloudKey(savedCloudKey);
+      setSyncMessage("Connexion automatique à la dernière synchro...");
     }
 
     setLoaded(true);
@@ -1321,6 +1337,111 @@ export default function Home() {
       }, 0),
     [flattened],
   );
+  const isSyncBusy = syncStatus === "loading" || syncStatus === "saving";
+
+  async function saveCloudItems(key: string, nextItems: TravelNode[]) {
+    const response = await fetch(`/api/sync/${encodeURIComponent(key)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: nextItems }),
+    });
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error ?? "La sauvegarde cloud a échoué.");
+    }
+  }
+
+  async function connectCloudSync(keyOverride?: string) {
+    const nextKey = (keyOverride ?? cloudKey).trim();
+
+    if (nextKey.length < 6) {
+      setSyncStatus("error");
+      setSyncMessage("Utilise une clé d'au moins 6 caractères.");
+      return;
+    }
+
+    setCloudKey(nextKey);
+    setSyncStatus("loading");
+    setSyncMessage("Recherche de la dernière configuration...");
+
+    try {
+      const response = await fetch(`/api/sync/${encodeURIComponent(nextKey)}`, { cache: "no-store" });
+
+      if (response.ok) {
+        const payload = (await response.json()) as { items?: unknown; updatedAt?: string };
+
+        if (!Array.isArray(payload.items)) {
+          throw new Error("La configuration cloud est invalide.");
+        }
+
+        setItems(migrateItinerary(payload.items as TravelNode[]));
+        setCloudReady(true);
+        window.localStorage.setItem(cloudKeyStorageKey, nextKey);
+        setSyncStatus("saved");
+        setSyncMessage(payload.updatedAt ? `Synchro connectée. Dernière mise à jour : ${new Date(payload.updatedAt).toLocaleString("fr-FR")}.` : "Synchro connectée.");
+        return;
+      }
+
+      if (response.status === 404) {
+        await saveCloudItems(nextKey, items);
+        setCloudReady(true);
+        window.localStorage.setItem(cloudKeyStorageKey, nextKey);
+        setSyncStatus("saved");
+        setSyncMessage("Nouvelle synchro créée avec ta configuration actuelle.");
+        return;
+      }
+
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error ?? "Impossible de charger la synchro.");
+    } catch (error) {
+      setCloudReady(false);
+      setSyncStatus("error");
+      setSyncMessage(error instanceof Error ? error.message : "Impossible de se connecter à la synchro.");
+    }
+  }
+
+  function disconnectCloudSync() {
+    setCloudReady(false);
+    setSyncStatus("idle");
+    setSyncMessage("Synchro déconnectée sur cet appareil. Les données locales restent conservées.");
+    window.localStorage.removeItem(cloudKeyStorageKey);
+  }
+
+  useEffect(() => {
+    const keyToConnect = pendingAutoConnectKeyRef.current;
+
+    if (!loaded || !keyToConnect || cloudKey.trim() !== keyToConnect) {
+      return;
+    }
+
+    pendingAutoConnectKeyRef.current = null;
+    void connectCloudSync(keyToConnect);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudKey, loaded]);
+
+  useEffect(() => {
+    if (!loaded || !cloudReady || !cloudKey.trim()) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setSyncStatus("saving");
+      setSyncMessage("Sauvegarde cloud en cours...");
+
+      saveCloudItems(cloudKey.trim(), items)
+        .then(() => {
+          setSyncStatus("saved");
+          setSyncMessage(`Dernière configuration sauvegardée : ${new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}.`);
+        })
+        .catch((error: unknown) => {
+          setSyncStatus("error");
+          setSyncMessage(error instanceof Error ? error.message : "La sauvegarde cloud a échoué.");
+        });
+    }, 900);
+
+    return () => window.clearTimeout(timeout);
+  }, [cloudKey, cloudReady, items, loaded]);
 
   function handleSubmit(node: TravelNode, parentId: string | null, mode: EditorState["mode"]) {
     setItems((current) => (mode === "create" ? addNode(current, parentId, node) : updateNode(current, node)));
@@ -1457,6 +1578,45 @@ export default function Home() {
           <button className="button primary" type="button" onClick={() => setEditor({ mode: "create", parentId: null })}>
             <Plus aria-hidden="true" />
             Ajouter un pays
+          </button>
+        </div>
+      </section>
+
+      <section className="cloud-sync-panel" aria-label="Synchronisation cloud">
+        <div className="sync-copy">
+          <span className={`sync-badge ${cloudReady ? "is-ready" : ""}`}>
+            {cloudReady ? <Cloud aria-hidden="true" /> : <CloudOff aria-hidden="true" />}
+            {cloudReady ? "Synchro active" : "Synchro partagée"}
+          </span>
+          <p>{syncMessage}</p>
+        </div>
+
+        <div className="sync-controls">
+          <label className="sync-key-field">
+            <span>Clé de synchro</span>
+            <input
+              value={cloudKey}
+              onChange={(event) => {
+                setCloudKey(event.target.value);
+
+                if (cloudReady) {
+                  setCloudReady(false);
+                  setSyncStatus("idle");
+                  setSyncMessage("Clé modifiée. Reconnecte-toi pour charger ou créer cette synchro.");
+                }
+              }}
+              placeholder="ex: amsud-2026-secret"
+              type="password"
+              autoComplete="off"
+            />
+          </label>
+          <button className="button primary" type="button" onClick={() => void connectCloudSync()} disabled={isSyncBusy}>
+            <Cloud aria-hidden="true" />
+            {syncStatus === "loading" ? "Connexion..." : "Connecter"}
+          </button>
+          <button className="button secondary" type="button" onClick={disconnectCloudSync} disabled={isSyncBusy || !cloudReady}>
+            <CloudOff aria-hidden="true" />
+            Déconnecter
           </button>
         </div>
       </section>
